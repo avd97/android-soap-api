@@ -22,6 +22,11 @@ android {
         dataBinding = true
     }
 
+    packaging {
+        resources.excludes.add("META-INF/NOTICE.md")
+        resources.excludes.add("META-INF/LICENSE.md")
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -51,5 +56,10 @@ dependencies {
     implementation ("com.squareup.retrofit2:converter-scalars:2.9.0") // For string responses
     implementation ("com.squareup.okhttp3:okhttp:4.10.0")
     implementation ("com.squareup.okhttp3:logging-interceptor:4.10.0")
+    implementation ("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3") // Jackson XML
+    implementation ("javax.xml.stream:stax-api:1.0-2") // StAX API
+    implementation ("com.fasterxml.woodstox:woodstox-core:6.2.4") // Woodstox StAX Implementation
+
+
 
 }

@@ -6,9 +6,13 @@ import androidx.databinding.DataBindingUtil;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.kb038.soapapi.databinding.ActivityMainBinding;
 import com.kb038.soapapi.model.AcerCallStatus;
+import com.kb038.soapapi.model.ArrayOfAcerCallStatus;
 import com.kb038.soapapi.network.RetrofitClient;
 import com.kb038.soapapi.network.SoapApiService;
 
@@ -29,7 +33,7 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
 
     ActivityMainBinding mBinding;
-    private String TAG = "mAiNaCtIvItY";
+    private final String TAG = "mAiNaCtIvItY";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,14 +60,15 @@ public class MainActivity extends AppCompatActivity {
             service.getAcerCallStatusList(/*requestBody*/).enqueue(new Callback<String>() {
                 @Override
                 public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
-                    String xmlResponse = "initial";
+                    String xmlResponse;
                     if (response.isSuccessful()) {
                         xmlResponse = response.body();
                         Log.w(TAG, "onResponse: " + xmlResponse);
 //                        parseXMLResponse(xmlResponse);
 
                         if(xmlResponse != null && !xmlResponse.equals("")) {
-                            parseXMLResponse(xmlResponse);
+//                            parseXMLResponse(xmlResponse);
+                            jacsonParsingXML(xmlResponse);
                         } else {
                             Log.d(TAG, "onResponse empty: ");
                         }
@@ -103,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Loop through the XML document until the document end is reached
             while (eventType != XmlPullParser.END_DOCUMENT) {
-                String tagName = null;
+                String tagName;
 
                 switch (eventType) {
                     case XmlPullParser.START_TAG:
@@ -148,6 +153,31 @@ public class MainActivity extends AppCompatActivity {
             mBinding.tvMessage.setText(acerData.toString());
         } catch (XmlPullParserException | IOException e) {
             e.printStackTrace();
+        }
+
+    }
+
+    void jacsonParsingXML(String xmlResponse){
+        Toast.makeText(this, "Used JACSON XML Parser", Toast.LENGTH_SHORT).show();
+        XmlMapper xmlMapper = new XmlMapper();
+        try {
+            ArrayOfAcerCallStatus arrayOfAcerCallStatus = xmlMapper.readValue(xmlResponse, ArrayOfAcerCallStatus.class);
+            StringBuilder acerData = new StringBuilder();
+
+            // Now you can work with the object, such as printing its content
+            arrayOfAcerCallStatus.getAcerCallStatus().forEach(status -> {
+                acerData.append(status.getId()).append(") ")
+                        .append(status.getStatusName()).append(" => ")
+                        .append(status.getResponseCode()).append("\n");
+
+//                System.out.println("Id: " + status.getId());
+//                System.out.println("StatusName: " + status.getStatusName());
+//                System.out.println("ResponseCode: " + status.getResponseCode());
+            });
+            mBinding.tvMessage.setText(acerData.toString());
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
 
     }
